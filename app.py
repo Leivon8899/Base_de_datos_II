@@ -65,6 +65,48 @@ def view_cart():
     items = cart_model.get_cart("default_cart")
     return render_template('cart.html', items=items)
 
+@app.route('/checkout', methods=['GET'])
+def checkout():
+    db = get_db()
+    cart_model = Cart(db)
+    items = cart_model.get_cart("default_cart")
+    total = sum(item['quantity'] * get_product_price(item['productId'], db) for item in items)
+    return render_template('checkout.html', items=items, total=total)
+
+def get_product_price(product_id, db):
+    product_model = Product(db)
+    product = product_model.get_product(product_id)
+    return product['price']
+
+@app.route('/process_payment', methods=['POST'])
+def process_payment():
+    payment_method = request.form['payment_method']
+    installments = request.form.get('installments', '1')
+    
+    db = get_db()
+    cart_model = Cart(db)
+    items = cart_model.get_cart("default_cart")
+    total = sum(item['quantity'] * get_product_price(item['productId'], db) for item in items)
+    
+    # Aquí es donde procesarías el pago usando una API de pago real.
+    # Vamos a simularlo y simplemente registrar la información del pago en la base de datos.
+    
+    payment_info = {
+        "payment_method": payment_method,
+        "installments": int(installments),
+        "total": total,
+        "items": items
+    }
+    
+    # Guardar la información del pago en una colección "payments" en MongoDB
+    db.payments.insert_one(payment_info)
+    
+    # Vaciar el carrito después del pago
+    cart_model.update_cart("default_cart", {"items": []})
+    
+    return render_template('payment_success.html', payment_info=payment_info)
+
+
 @app.route('/remove_from_cart/<product_id>', methods=['POST'])
 def remove_from_cart(product_id):
     db = get_db()

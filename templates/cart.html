@@ -23,6 +23,9 @@
     </tr>
     {% endfor %}
 </table>
+<form action="/checkout" method="get">
+    <button type="submit">Finalizar Compra</button>
+</form>
 {% else %}
 <p>Your cart is empty.</p>
 {% endif %}
