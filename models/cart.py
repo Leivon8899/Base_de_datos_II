@@ -33,3 +33,11 @@ class Cart:
         items = self.get_cart(cart_id)
         items = [item for item in items if item["productId"] != product_id]
         self.update_cart(cart_id, {"items": items})
+
+    def update_cart_quantity(self, cart_id, product_id, quantity):
+        items = self.get_cart(cart_id)
+        for item in items:
+            if item["productId"] == product_id:
+                item["quantity"] = quantity
+                break
+        self.update_cart(cart_id, {"items": items})

@@ -65,6 +65,27 @@ def view_cart():
     items = cart_model.get_cart("default_cart")
     return render_template('cart.html', items=items)
 
+@app.route('/update_cart', methods=['POST'])
+def update_cart():
+    product_id = request.form['product_id']
+    quantity = int(request.form['quantity'])
+
+    db = get_db()
+    cart_model = Cart(db)
+    
+    cart_id = "default_cart"
+    cart_model.update_cart_quantity(cart_id, product_id, quantity)
+    
+    return redirect(url_for('view_cart'))
+
+@app.route('/remove_from_cart/<product_id>', methods=['POST'])
+def remove_from_cart(product_id):
+    db = get_db()
+    cart_model = Cart(db)
+    cart_id = "default_cart"
+    cart_model.remove_from_cart(cart_id, product_id)
+    return redirect(url_for('view_cart'))
+
 @app.route('/checkout', methods=['GET'])
 def checkout():
     db = get_db()
@@ -105,15 +126,6 @@ def process_payment():
     cart_model.update_cart("default_cart", {"items": []})
     
     return render_template('payment_success.html', payment_info=payment_info)
-
-
-@app.route('/remove_from_cart/<product_id>', methods=['POST'])
-def remove_from_cart(product_id):
-    db = get_db()
-    cart_model = Cart(db)
-    cart_id = "default_cart"
-    cart_model.remove_from_cart(cart_id, product_id)
-    return redirect(url_for('view_cart'))
 
 @app.route('/test_mongo')
 def test_mongo():
