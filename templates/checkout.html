@@ -4,8 +4,34 @@
 
 {% block content %}
 <h1>Checkout</h1>
-<p>Total: ${{ total }}</p>
 
+<h2>Detalles del Pedido</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Producto</th>
+            <th>Cantidad</th>
+            <th>Precio Unitario</th>
+            <th>Subtotal</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in items %}
+        <tr>
+            <td>{{ item.name }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>${{ item.price }}</td>
+            <td>${{ item.quantity * item.price }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<p>Total: $<span id="total">{{ total }}</span></p>
+<p id="credit_fee" style="display: none;">Recargo por tarjeta de crédito (15%): $<span id="credit_fee_amount"></span></p>
+<p id="grand_total">Total con recargo: $<span id="grand_total_amount">{{ total }}</span></p>
+
+<h2>Opciones de Pago</h2>
 <form action="/process_payment" method="post">
     <label for="payment_method">Choose a payment method:</label>
     <select id="payment_method" name="payment_method">
@@ -32,17 +58,34 @@
 
 <script>
 document.getElementById('payment_method').addEventListener('change', function() {
+    var total = parseFloat(document.getElementById('total').innerText);
+    var creditFee = document.getElementById('credit_fee');
+    var creditFeeAmount = document.getElementById('credit_fee_amount');
+    var grandTotal = document.getElementById('grand_total');
+    var grandTotalAmount = document.getElementById('grand_total_amount');
     var creditOptions = document.getElementById('credit_options');
     var debitOptions = document.getElementById('debit_options');
+    
     if (this.value == 'credit') {
         creditOptions.style.display = 'block';
         debitOptions.style.display = 'none';
+        var fee = total * 0.15;
+        creditFeeAmount.innerText = fee.toFixed(2);
+        grandTotalAmount.innerText = (total + fee).toFixed(2);
+        creditFee.style.display = 'block';
+        grandTotal.style.display = 'block';
     } else if (this.value == 'debit') {
         creditOptions.style.display = 'none';
         debitOptions.style.display = 'block';
+        creditFee.style.display = 'none';
+        grandTotalAmount.innerText = total.toFixed(2);
+        grandTotal.style.display = 'none';
     } else {
         creditOptions.style.display = 'none';
         debitOptions.style.display = 'none';
+        creditFee.style.display = 'none';
+        grandTotalAmount.innerText = total.toFixed(2);
+        grandTotal.style.display = 'none';
     }
 });
 </script>

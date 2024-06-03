@@ -17,6 +17,17 @@
             text-decoration: none;
             margin: 0 10px;
         }
+        .navbar form {
+            display: inline;
+        }
+        .navbar form button {
+            background: none;
+            border: none;
+            color: white;
+            text-decoration: underline;
+            cursor: pointer;
+            margin: 0 10px;
+        }
         .content {
             margin: 20px;
         }
@@ -40,7 +51,16 @@
             <a href="/products">Products</a>
         </div>
         <div>
-            <a href="/cart">Cart ({{ cart_count }})</a>
+            {% if session.token %}
+                <a href="/cart">Cart ({{ cart_count }})</a>
+                <a href="/auth/profile">Profile</a>
+                <form action="{{ url_for('auth.logout') }}" method="post" style="display:inline;">
+                    <button type="submit">Logout</button>
+                </form>
+            {% else %}
+                <a href="/auth/login">Login</a>
+                <a href="/auth/register">Register</a>
+            {% endif %}
         </div>
     </div>
     <div class="content">

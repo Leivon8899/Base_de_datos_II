@@ -3,18 +3,17 @@
 {% block title %}Payment Success{% endblock %}
 
 {% block content %}
-<h1>Payment Successful!</h1>
-<p>Thank you for your purchase. Here are the details of your transaction:</p>
-<ul>
-    <li><strong>Payment Method:</strong> {{ payment_info.payment_method }}</li>
-    <li><strong>Installments:</strong> {{ payment_info.installments }}</li>
-    <li><strong>Total:</strong> ${{ payment_info.total }}</li>
-</ul>
-<h2>Purchased Items:</h2>
+    <h1>Payment Successful</h1>
+<p>Thank you for your purchase!</p>
+<p>Your order number is: {{ payment_info.order_number }}</p>
+<p>Payment Method: {{ payment_info.payment_method }}</p>
+<p>Total Amount: ${{ payment_info.total }}</p>
+<p>Items:</p>
 <ul>
     {% for item in payment_info['items'] %}
-    <li>Product ID: {{ item.productId }}, Quantity: {{ item.quantity }}</li>
+        <li>{{ item.name }} - Quantity: {{ item.quantity }}</li>
     {% endfor %}
 </ul>
-<a href="/products">Continue Shopping</a>
+<a href="{{ url_for('products_page') }}">Continue Shopping</a>
+
 {% endblock %}

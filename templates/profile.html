@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile</title>
+</head>
+<body>
+    <h1>User Profile</h1>
+    <p>Name: {{ user.name }}</p>
+    <p>Email: {{ user.username }}</p>
+    <p>Address: {{ user.address }}</p>
+    <p>ID Number: {{ user.id_number }}</p>
+    <form action="{{ url_for('auth.logout') }}" method="post">
+        <button type="submit">Logout</button>
+    </form>
+</body>
+</html>
+
+{% endblock %}
