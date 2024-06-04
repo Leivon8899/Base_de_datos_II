@@ -3,7 +3,7 @@
 {% block title %}Payment Success{% endblock %}
 
 {% block content %}
-    <h1>Payment Successful</h1>
+<h1>Payment Successful</h1>
 <p>Thank you for your purchase!</p>
 <p>Your order number is: {{ payment_info.order_number }}</p>
 <p>Payment Method: {{ payment_info.payment_method }}</p>
@@ -15,5 +15,4 @@
     {% endfor %}
 </ul>
 <a href="{{ url_for('products_page') }}">Continue Shopping</a>
-
 {% endblock %}

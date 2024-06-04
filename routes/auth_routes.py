@@ -31,7 +31,8 @@ def register():
             "password": hashed_password,
             "name": name,
             "address": address,
-            "id_number": id_number
+            "id_number": id_number,
+            "role": "client"
         }
         redis_client.hset(f"user:{username}", mapping=user_data)
         
