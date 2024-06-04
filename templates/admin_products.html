@@ -13,12 +13,14 @@
     </tr>
     {% for product in products %}
     <tr>
-        <td>{{ product._id }}</td>
+        <td>{{ product.productId }}</td>
         <td>{{ product.name }}</td>
         <td>{{ product.price }}</td>
         <td>
-            <a href="{{ url_for('edit_product', product_id=product._id) }}">Edit</a>
-            <a href="{{ url_for('delete_product', product_id=product._id) }}">Delete</a> 
+            <a href="{{ url_for('edit_product', product_id=product.productId) }}">Edit</a>
+            <form action="{{ url_for('delete_product', product_id=product.productId) }}" method="post" style="display:inline;">
+                <button type="submit">Delete</button>
+            </form>
         </td>
     </tr>
     {% endfor %}

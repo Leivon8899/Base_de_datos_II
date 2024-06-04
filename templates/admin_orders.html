@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}All Orders{% endblock %}
+
+{% block content %}
+<h1>All Orders</h1>
+<table>
+    <tr>
+        <th>Order ID</th>
+        <th>User Name</th>
+        <th>Actions</th>
+    </tr>
+    {% for order in orders %}
+    <tr>
+        <td>{{ order._id }}</td>
+        <td>{{ order.user_id}}</td>
+        <td><a href="{{ url_for('view_order_details', order_id=order._id) }}">View Details</a></td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

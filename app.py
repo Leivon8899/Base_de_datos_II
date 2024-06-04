@@ -1,3 +1,4 @@
+
 from flask import Flask, render_template, request, redirect, url_for, session
 from routes.user_routes import user_bp
 from routes.cart_routes import cart_bp
@@ -12,7 +13,7 @@ from models.payment import Payment
 from models.order import Order
 from decorator.decorators import admin_required
 import os
-from bson import json_util
+from bson import json_util, ObjectId
 
 secret_key = os.urandom(24)
 
@@ -70,6 +71,8 @@ def product_detail(product_id):
     db = get_db()
     product_model = Product(db)
     product = product_model.get_product(product_id)
+    if not product:
+        return "Product not found", 404
     return render_template('product_detail.html', product=product)
 
 @app.route('/admin/products')
@@ -87,17 +90,19 @@ def add_product():
         name = request.form['name']
         price = float(request.form['price'])
         description = request.form['description']
-        images = request.form.getlist('images')
-        videos = request.form.getlist('videos')
+        images = request.form.get('images').split(',')
+        videos = request.form.get('videos').split(',')
 
         db = get_db()
         product_model = Product(db)
         product_data = {
+            "productId": str(ObjectId()),  # Crear un nuevo productId
             "name": name,
             "price": price,
             "description": description,
             "images": images,
-            "videos": videos
+            "videos": videos,
+            #"isDeleted": False
         }
         product_model.add_product(product_data)
         return redirect(url_for('admin_products_page'))
@@ -114,8 +119,8 @@ def edit_product(product_id):
         name = request.form['name']
         price = float(request.form['price'])
         description = request.form['description']
-        images = request.form.getlist('images')
-        videos = request.form.getlist('videos')
+        images = request.form.get('images').split(',')
+        videos = request.form.get('videos').split(',')
 
         product_data = {
             "name": name,
@@ -137,7 +142,6 @@ def delete_product(product_id):
     product_model = Product(db)
     product_model.delete_product(product_id)
     return redirect(url_for('admin_products_page'))
-
 
 @app.route('/add_to_cart', methods=['POST'])
 def add_to_cart():
@@ -238,6 +242,7 @@ def process_payment():
     user_id = redis_client.get(f"session:{session['token']}").decode('utf-8')
     payment_method = request.form['payment_method']
     installments = request.form.get('installments', '1')
+    
     db = get_db()
     cart_model = Cart(db)
     payment_model = Payment(db)
@@ -304,6 +309,24 @@ def payment_success():
         return render_template('payment_success.html', payment_info=payment_info)
     else:
         return redirect(url_for('index'))
+
+@app.route('/admin/orders')
+@admin_required
+def view_all_orders():
+    db = get_db()
+    order_model = Order(db)
+    orders = order_model.get_all_orders()
+    return render_template('admin_orders.html', orders=orders)
+
+@app.route('/admin/order/<order_id>')
+@admin_required
+def view_order_details(order_id):
+    db = get_db()
+    order_model = Order(db)
+    order = order_model.get_order(order_id)
+    if not order:
+        return "Order not found", 404
+    return render_template('order_details.html', order=order)
 
 @app.route('/test_mongo')
 def test_mongo():

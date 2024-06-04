@@ -7,18 +7,18 @@
     <h1>{{ product.name }}</h1>
     <p><strong>ID:</strong> {{ product.productId }}</p>
     <p><strong>Description:</strong> {{ product.description }}</p>
-    <p><strong>Price:</strong> {{ product.price }}</p>
+    <p><strong>Price:</strong> ${{ product.price }}</p>
     <p><strong>Images:</strong> {{ product.images | join(', ') }}</p>
     <p><strong>Videos:</strong> {{ product.videos | join(', ') }}</p>
 
-    <form action="/add_to_cart" method="post">
+    <form action="{{ url_for('add_to_cart') }}" method="post">
         <input type="hidden" name="product_id" value="{{ product.productId }}">
-        <input type="hidden" name="name" value="{{ product.description }}">
+        <input type="hidden" name="name" value="{{ product.name }}">
         <label for="quantity">Quantity:</label>
         <input type="number" id="quantity" name="quantity" min="1" value="1">
         <button type="submit">Add to Cart</button>
     </form>
 
-    <a href="/products">Back to Product List</a>
+    <a href="{{ url_for('products_page') }}">Back to Product List</a>
 </div>
 {% endblock %}
