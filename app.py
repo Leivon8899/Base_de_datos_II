@@ -10,7 +10,7 @@ from models.product import Product
 from models.cart import Cart
 from models.payment import Payment
 from models.order import Order
-from decorator.decorators import admin_required, track_session
+from decorator.decorators import admin_required
 import os
 from bson import json_util, ObjectId
 from datetime import datetime, timedelta
@@ -57,7 +57,10 @@ def inject_cart_count():
 
 @app.route('/')
 def index():
-    return render_template('home.html')
+    db = get_db()
+    product_model = Product(db)
+    products = product_model.get_all_products()
+    return render_template('home.html', products=products)
 
 @app.route('/products')
 def products_page():
@@ -74,6 +77,14 @@ def product_detail(product_id):
     if not product:
         return "Product not found", 404
     return render_template('product_detail.html', product=product)
+
+@app.route('/search')
+def search():
+    query = request.args.get('q')
+    db = get_db()
+    product_model = Product(db)
+    products = list(product_model.collection.find({"name": {"$regex": query, "$options": "i"}}))
+    return render_template('products.html', products=products)
 
 @app.route('/admin/products')
 @admin_required
@@ -300,9 +311,14 @@ def process_payment():
     
     redis_client = get_redis_client()
     user_id = redis_client.get(f"session:{session['token']}").decode('utf-8')
+
+    user_name = redis_client.hget(f"user:{user_id}", "name").decode('utf-8')
+    user_address = redis_client.hget(f"user:{user_id}", "address").decode('utf-8')
+
     payment_method = request.form['payment_method']
     installments = request.form.get('installments', '1')
-    
+
+
     db = get_db()
     cart_model = Cart(db)
     payment_model = Payment(db)
@@ -339,6 +355,8 @@ def process_payment():
     order_info = {
         "order_number": order_number,
         "user_id": user_id,
+        "name": user_name,
+        "address": user_address,
         "items": items,
         "total": total,
         "payment_method": payment_method,

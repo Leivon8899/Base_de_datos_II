@@ -1,25 +1,37 @@
 {% extends "base.html" %}
 
-{% block title %}Product List{% endblock %}
-
 {% block content %}
-<h1>Product List</h1>
-<table>
-    <tr>
-        <th>ID</th>
-        <th>Name</th>
-        <th>Description</th>
-        <th>Price</th>
-        <th>Details</th>
-    </tr>
-    {% for product in products %}
-    <tr>
-        <td>{{ product.productId }}</td>
-        <td>{{ product.name }}</td>
-        <td>{{ product.description }}</td>
-        <td>{{ product.price }}</td>
-        <td><a href="{{ url_for('product_detail', product_id=product.productId) }}">View Details</a></td>
-    </tr>
-    {% endfor %}
-</table>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Product List{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/products.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="content">
+            <h1>Product List</h1>
+            <div class="product-grid">
+                {% for product in products %}
+                <div class="product">
+                    
+                    <img src="/" alt="{{ product.name }}">
+                    <div class="product-details">
+                        <h2>{{ product.name }}</h2>
+                        <p>{{ product.description }}</p>
+                        <p class="product-price">{{ product.price }}</p>
+                    </div>
+                    <div class="product-action">
+                        <a href="/product/{{ product.productId }}" class="view-details-btn">Ver Detalles</a>
+                        <button>Sumar al Carrito</button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>
 {% endblock %}

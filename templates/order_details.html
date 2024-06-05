@@ -5,8 +5,9 @@
 {% block content %}
 <h1>Order Details</h1>
 <p><strong>Order ID:</strong> {{ order._id }}</p>
-<p><strong>User Name:</strong> {{ order.user_full_name }}</p>
-<p><strong>User DNI:</strong> {{ order.user_dni }}</p>
+<p><strong>User Name:</strong> {{ order.user_id }}</p>
+<p><strong>Name:</strong> {{ order.name }}</p>
+<p><strong>Address:</strong> {{ order.address }}</p>
 <p><strong>Payment Method:</strong> {{ order.payment_method }}</p>
 <p><strong>Installments:</strong> {{ order.installments }}</p>
 <p><strong>Total:</strong> ${{ order.total }}</p>

@@ -2,6 +2,8 @@ from flask import Blueprint, request, jsonify, render_template, redirect, url_fo
 from utils.redis_client import get_redis_client
 import uuid
 import hashlib
+import time
+from utils.classify_users import classify_user  # Importar la función de clasificación
 
 auth_bp = Blueprint('auth', __name__)
 redis_client = get_redis_client()
@@ -65,6 +67,10 @@ def login():
         redis_client.expire(f"session:{session_token}", 3600)  # Session expires in 1 hour
         session['token'] = session_token
 
+        login_time = time.time()
+        redis_client.hset(f"user:{username}", "login_time", login_time)
+
+
         return redirect(url_for('index'))
 
     return render_template('login.html')
@@ -75,6 +81,27 @@ def logout():
     
     if not token:
         return redirect(url_for('auth.login'))
+
+    username = redis_client.get(f"session:{token}").decode('utf-8')
+    login_time = float(redis_client.hget(f"user:{username}", "login_time"))
+    logout_time = time.time()
+    
+    session_duration = logout_time - login_time
+    
+    # Actualizar el tiempo total de conexión diario
+    current_date = time.strftime("%Y-%m-%d")
+    key = f"user:{username}:connection_time:{current_date}"
+    total_time = redis_client.get(key)
+
+    if total_time:
+        total_time = float(total_time)
+    else:
+        total_time = 0.0
+    
+    total_time += session_duration
+    redis_client.set(key, total_time)
+
+    classify_user(username)
 
     redis_client.delete(f"session:{token}")
     session.pop('token', None)

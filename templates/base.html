@@ -4,68 +4,56 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}My Shop{% endblock %}</title>
-    <style>
-        .navbar {
-            display: flex;
-            justify-content: space-between;
-            background-color: #333;
-            padding: 10px;
-            color: white;
-        }
-        .navbar a {
-            color: white;
-            text-decoration: none;
-            margin: 0 10px;
-        }
-        .navbar form {
-            display: inline;
-        }
-        .navbar form button {
-            background: none;
-            border: none;
-            color: white;
-            text-decoration: underline;
-            cursor: pointer;
-            margin: 0 10px;
-        }
-        .content {
-            margin: 20px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        table, th, td {
-            border: 1px solid black;
-        }
-        th, td {
-            padding: 10px;
-            text-align: left;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/products.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/product_detail.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/login.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/register.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/home.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/home.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/open-iconic/1.1.1/font/css/open-iconic-bootstrap.min.css">
 </head>
 <body>
-    <div class="navbar">
-        <div>
-            <a href="/">Home</a>
-            <a href="/products">Products</a>
-            {% if user_role == 'admin' %}
-                <a href="/admin/products">Control Panel</a>
-                <a href="/admin/orders">View Orders</a>
-                <a href="/admin/audit_logs">View Audit Logs</a>
-            {% endif %}
-        </div>
-        <div>
-            {% if session.token %}
-                <a href="/cart">Cart ({{ cart_count }})</a>
-                <a href="/auth/profile">Profile</a>
-                <form action="{{ url_for('auth.logout') }}" method="post" style="display:inline;">
-                    <button type="submit">Logout</button>
-                </form>
-            {% else %}
-                <a href="/auth/login">Login</a>
-                <a href="/auth/register">Register</a>
-            {% endif %}
+    <div id="flipkart-navbar">
+        <div class="container">
+            <div class="d-none d-md-block col-lg-12">
+                <ul class="list-inline d-flex justify-content-end">
+                    <li class="p-2 list-inline-item"><a href="/"><strong>HOME</strong></a></li>
+                    <li class="p-2 list-inline-item"><a href="/products"><strong>PRODUCTOS</strong></a></li>
+                    {% if user_role == 'admin' %}
+                        <a href="/admin/products">PANEL DE CONTROL</a>
+                        <a href="/admin/orders">VER ORDENES</a>
+                        <a href="/admin/audit_logs">VER AUDIT LOGS</a>
+                    {% endif %}
+                    {% if session.token %}
+                        <li class="p-2 list-inline-item"><a href="/cart">CARRITO ({{ cart_count }})</a></li>
+                        <li class="p-2 list-inline-item"><a href="/auth/profile"><strong>PERFIL</strong></a></li>
+                        <li class="p-2 list-inline-item">
+                            <form action="{{ url_for('auth.logout') }}" method="post" style="display:inline;">
+                                <button type="submit">SALIR</button>
+                            </form>
+                        </li>
+                    {% else %}
+                        <li class="p-2 list-inline-item"><a href="/auth/login"><strong>ENTRAR</strong></a></li>
+                        <li class="p-2 list-inline-item"><a href="/auth/register"><strong>REGISTRARSE</strong></a></li>
+                    {% endif %}
+                </ul>
+            </div>
+            <div class="row d-flex justify-content-around align-items-center">
+                <div class="col-lg-2 col-sm-1 p-2">
+                    <h2 class="d-none d-md-block">TiendaMia</h2>
+                </div>
+                <div class="col-lg-8 col-sm-8 p-2 text-center">
+                    <form action="/search" method="get">
+                        <div class="row">
+                            <input type="text" class="flipkart-navbar-input col-lg-10 col-sm-9" placeholder="Buscar productos" name="q">
+                            <button type="submit" class="flipkart-navbar-button rounded-right col-lg-2 col-sm-3">
+                                <span class="oi oi-magnifying-glass"></span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
     <div class="content">
