@@ -1,4 +1,3 @@
-
 from flask import Flask, render_template, request, redirect, url_for, session
 from routes.user_routes import user_bp
 from routes.cart_routes import cart_bp
@@ -11,9 +10,10 @@ from models.product import Product
 from models.cart import Cart
 from models.payment import Payment
 from models.order import Order
-from decorator.decorators import admin_required
+from decorator.decorators import admin_required, track_session
 import os
 from bson import json_util, ObjectId
+from datetime import datetime, timedelta
 
 secret_key = os.urandom(24)
 
@@ -63,7 +63,7 @@ def index():
 def products_page():
     db = get_db()
     product_model = Product(db)
-    products = product_model.get_all_products()
+    products = product_model.get_active_products()
     return render_template('products.html', products=products)
 
 @app.route('/product/<product_id>')
@@ -80,7 +80,7 @@ def product_detail(product_id):
 def admin_products_page():
     db = get_db()
     product_model = Product(db)
-    products = product_model.get_all_products()
+    products = product_model.get_active_products()
     return render_template('admin_products.html', products=products)
 
 @app.route('/admin/add_product', methods=['GET', 'POST'])
@@ -102,9 +102,14 @@ def add_product():
             "description": description,
             "images": images,
             "videos": videos,
-            #"isDeleted": False
+            "isDeleted": False
         }
         product_model.add_product(product_data)
+
+        # Registrar acción en auditoría
+        user_id = get_redis_client().get(f"session:{session['token']}").decode('utf-8')
+        log_audit("create", product_data["productId"], user_id, f"Product '{name}' created")
+
         return redirect(url_for('admin_products_page'))
 
     return render_template('add_product.html')
@@ -116,11 +121,25 @@ def edit_product(product_id):
     product_model = Product(db)
     
     if request.method == 'POST':
+        product = product_model.get_product(product_id)
+        
         name = request.form['name']
         price = float(request.form['price'])
         description = request.form['description']
         images = request.form.get('images').split(',')
         videos = request.form.get('videos').split(',')
+
+        changes = []
+        if name != product["name"]:
+            changes.append({"field": "name", "old": product["name"], "new": name})
+        if price != product["price"]:
+            changes.append({"field": "price", "old": product["price"], "new": price})
+        if description != product["description"]:
+            changes.append({"field": "description", "old": product["description"], "new": description})
+        if images != product["images"]:
+            changes.append({"field": "images", "old": product["images"], "new": images})
+        if videos != product["videos"]:
+            changes.append({"field": "videos", "old": product["videos"], "new": videos})
 
         product_data = {
             "name": name,
@@ -130,18 +149,59 @@ def edit_product(product_id):
             "videos": videos
         }
         product_model.update_product(product_id, product_data)
+
+        # Registrar acción en auditoría
+        user_id = get_redis_client().get(f"session:{session['token']}").decode('utf-8')
+        log_audit("edit", product_id, user_id, f"Product '{name}' updated", changes)
+
         return redirect(url_for('admin_products_page'))
 
     product = product_model.get_product(product_id)
-    return render_template('edit_product.html', product=product)
+    return render_template('edit_product.html', product= product)
 
 @app.route('/admin/delete_product/<product_id>', methods=['POST'])
 @admin_required
 def delete_product(product_id):
     db = get_db()
     product_model = Product(db)
-    product_model.delete_product(product_id)
+    product = product_model.get_product(product_id)
+
+    if product:
+        product_model.delete_product(product_id)
+
+        # Registrar acción en auditoría
+        user_id = get_redis_client().get(f"session:{session['token']}").decode('utf-8')
+        log_audit("delete", product_id, user_id, f"Product '{product['name']}' deleted")
+
     return redirect(url_for('admin_products_page'))
+
+# Función para registrar auditoría
+def log_audit(action, product_id, user_id, details, changes=None):
+    db = get_db()
+    audit_log = {
+        "action": action,
+        "product_id": product_id,
+        "user_id": user_id,
+        "timestamp": datetime.utcnow(),
+        "details": details,
+        "changes": changes  # Nuevo campo para registrar los cambios
+    }
+    db.audit_logs.insert_one(audit_log)
+
+@app.route('/admin/audit_logs')
+@admin_required
+def view_audit_logs():
+    db = get_db()
+    audit_logs = list(db.audit_logs.find().sort("timestamp", -1))
+    return render_template('admin_audit_logs.html', audit_logs=audit_logs)
+
+@app.route('/admin/audit_logs/<product_id>')
+@admin_required
+def view_product_audit_logs(product_id):
+    db = get_db()
+    audit_logs = list(db.audit_logs.find({"product_id": product_id}).sort("timestamp", -1))
+    product = db.products.find_one({"productId": product_id})
+    return render_template('product_audit_logs.html', audit_logs=audit_logs, product=product)
 
 @app.route('/add_to_cart', methods=['POST'])
 def add_to_cart():

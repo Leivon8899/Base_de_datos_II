@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Audit Logs{% endblock %}
+
+{% block content %}
+<h1>Audit Logs</h1>
+<table>
+    <tr>
+        <th>Action</th>
+        <th>Product ID</th>
+        <th>User ID</th>
+        <th>Timestamp</th>
+        <th>Details</th>
+    </tr>
+    {% for log in audit_logs %}
+    <tr>
+        <td>{{ log.action }}</td>
+        <td><a href="{{ url_for('view_product_audit_logs', product_id=log.product_id) }}">{{ log.product_id }}</a></td>
+        <td>{{ log.user_id }}</td>
+        <td>{{ log.timestamp }}</td>
+        <td>
+            {{ log.details }}
+            {% if log.changes %}
+            <ul>
+                {% for change in log.changes %}
+                <li>{{ change.field }}: {{ change.old }} -> {{ change.new }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

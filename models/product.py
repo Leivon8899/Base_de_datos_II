@@ -13,14 +13,17 @@ class Product:
     def update_product(self, product_id, update_data):
         return self.collection.update_one({"productId": product_id}, {"$set": update_data})
 
-#    def delete_product(self, product_id):
-#        return self.collection.update_one(
-#            {"productId": product_id},
-#            {"$set": {"isDeleted": True}}
-#        )
-
     def delete_product(self, product_id):
-        return self.collection.delete_one({"productId": product_id})
-
+        return self.collection.update_one(
+            {"productId": product_id},
+            {"$set": {"isDeleted": True}}
+        )
+    
     def get_all_products(self):
-        return list(self.collection.find({}))
+        return list(self.collection.find())
+    
+    def get_active_products(self):
+        return list(self.collection.find({"isDeleted": False}))
+    
+    def get_deleted_products(self):
+        return list(self.collection.find({"isDeleted": True}))

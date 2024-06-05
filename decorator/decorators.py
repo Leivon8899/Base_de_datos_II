@@ -1,6 +1,7 @@
 from functools import wraps
 from flask import session, redirect, url_for, flash
 from utils.redis_client import get_redis_client
+from datetime import datetime, timedelta
 
 def admin_required(f):
     @wraps(f)
@@ -16,5 +17,17 @@ def admin_required(f):
             flash("You do not have permission to access this page.", "danger")
             return redirect(url_for('index'))
 
+        return f(*args, **kwargs)
+    return decorated_function
+
+def track_session(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        user_id = session.get('user_id')
+        if user_id:
+            redis_client = get_redis_client()
+            session_key = f"user:{user_id}:session"
+            if not redis_client.exists(session_key):
+                redis_client.set(session_key, datetime.utcnow().isoformat())
         return f(*args, **kwargs)
     return decorated_function
