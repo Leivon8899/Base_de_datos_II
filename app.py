@@ -91,7 +91,7 @@ def search():
 def admin_products_page():
     db = get_db()
     product_model = Product(db)
-    products = product_model.get_active_products()
+    products = product_model.get_active_products_admin()
     return render_template('admin_products.html', products=products)
 
 @app.route('/admin/add_product', methods=['GET', 'POST'])
@@ -101,6 +101,8 @@ def add_product():
         name = request.form['name']
         price = float(request.form['price'])
         description = request.form['description']
+        stock = int(request.form['stock'])
+
         images = request.form.get('images').split(',')
         videos = request.form.get('videos').split(',')
 
@@ -111,6 +113,7 @@ def add_product():
             "name": name,
             "price": price,
             "description": description,
+            "stock": stock,
             "images": images,
             "videos": videos,
             "isDeleted": False
@@ -137,6 +140,7 @@ def edit_product(product_id):
         name = request.form['name']
         price = float(request.form['price'])
         description = request.form['description']
+        stock = int(request.form['stock'])
         images = request.form.get('images').split(',')
         videos = request.form.get('videos').split(',')
 
@@ -145,6 +149,8 @@ def edit_product(product_id):
             changes.append({"field": "name", "old": product["name"], "new": name})
         if price != product["price"]:
             changes.append({"field": "price", "old": product["price"], "new": price})
+        if stock != product["stock"]:
+            changes.append({"field": "stock", "old": product["stock"], "new": stock})
         if description != product["description"]:
             changes.append({"field": "description", "old": product["description"], "new": description})
         if images != product["images"]:
@@ -156,6 +162,7 @@ def edit_product(product_id):
             "name": name,
             "price": price,
             "description": description,
+            "stock": stock,
             "images": images,
             "videos": videos
         }
@@ -296,6 +303,7 @@ def checkout():
         }
         detailed_items.append(item_details)
 
+    
     total = sum(item['quantity'] * get_product_price(item['productId'], db) for item in items)
     return render_template('checkout.html', items=detailed_items, total=total)
 
@@ -303,6 +311,10 @@ def get_product_price(product_id, db):
     product_model = Product(db)
     product = product_model.get_product(product_id)
     return product['price']
+
+@app.route('/error')
+def error():
+    return render_template('error.html')
 
 @app.route('/process_payment', methods=['POST'])
 def process_payment():
@@ -318,20 +330,28 @@ def process_payment():
     payment_method = request.form['payment_method']
     installments = request.form.get('installments', '1')
 
-
     db = get_db()
     cart_model = Cart(db)
     payment_model = Payment(db)
     order_model = Order(db)
-    
+    product_model = Product(db)
+
     cart_id = f"{user_id}"
     items = cart_model.get_cart(cart_id)
     total = sum(item['quantity'] * get_product_price(item['productId'], db) for item in items)
     
-    # Convertir ObjectId a string
     for item in items:
         item["productId"] = str(item["productId"])
+        product = product_model.get_product(item["productId"])
         
+        if product["stock"] < item["quantity"]:
+            # Maneja el caso donde no hay suficiente stock
+            #products = product_model.get_active_products()
+            return redirect(url_for('error')) #render_template('products.html', products=products)
+        else:
+            # Descuenta el stock
+            product_model.decrement_stock(item["productId"], item["quantity"])
+
     # Aplicar recargo del 15% si el método de pago es tarjeta de crédito
     if payment_method == 'credit':
         total += total * 0.15

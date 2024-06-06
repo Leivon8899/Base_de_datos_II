@@ -23,7 +23,16 @@ class Product:
         return list(self.collection.find())
     
     def get_active_products(self):
-        return list(self.collection.find({"isDeleted": False}))
+        return list(self.collection.find({"isDeleted": False, "stock": {"$gt": 0}}))
     
+    def get_active_products_admin(self):
+        return list(self.collection.find({"isDeleted": False}))
+
     def get_deleted_products(self):
         return list(self.collection.find({"isDeleted": True}))
+
+    def decrement_stock(self, product_id, quantity):
+        return self.collection.update_one(
+            {"productId": product_id, "isDeleted": False, "stock": {"$gt": quantity - 1}},
+            {"$inc": {"stock": -quantity}}
+        )

@@ -14,6 +14,9 @@
     <label for="description">Description:</label>
     <textarea id="description" name="description" required>{{ product.description }}</textarea><br>
 
+    <label for="stock">Stock:</label>
+    <input type="number" id="stock" name="stock" value="{{ product.stock }}" step="1.00" required><br>
+
     <label for="images">Images (comma separated URLs):</label>
     <input type="text" id="images" name="images" value="{{ product.images | join(', ') }}"><br>
 

@@ -9,6 +9,7 @@
         <th>Product ID</th>
         <th>Name</th>
         <th>Price</th>
+        <th>Stock</th>
         <th>Actions</th>
     </tr>
     {% for product in products %}
@@ -16,6 +17,8 @@
         <td>{{ product.productId }}</td>
         <td>{{ product.name }}</td>
         <td>{{ product.price }}</td>
+        <td>{{ product.stock }}</td>
+
         <td>
             <a href="{{ url_for('edit_product', product_id=product.productId) }}">Edit</a>
             <form action="{{ url_for('delete_product', product_id=product.productId) }}" method="post" style="display:inline;">
