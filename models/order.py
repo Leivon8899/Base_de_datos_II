@@ -17,5 +17,6 @@ class Order:
     def update_order_status(self, order_number, status):
         self.db.orders.update_one({"order_number": order_number}, {"$set": {"status": status}})
 
+
     def get_orders_by_user(self, user_id):
         return list(self.db.orders.find({"user_id": user_id}))

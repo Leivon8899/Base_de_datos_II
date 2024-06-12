@@ -10,6 +10,7 @@ from models.product import Product
 from models.cart import Cart
 from models.payment import Payment
 from models.order import Order
+from models.invoice import Invoice
 from decorator.decorators import admin_required
 import os
 from bson import json_util, ObjectId
@@ -339,6 +340,8 @@ def get_product_price(product_id, db):
 def error():
     return render_template('error.html')
 
+
+
 @app.route('/process_payment/<order_number>', methods=['POST'])
 def process_payment(order_number):
     if 'token' not in session:
@@ -352,11 +355,15 @@ def process_payment(order_number):
 
     payment_method = request.form['payment_method']
     installments = request.form.get('installments', '1')
+    iva_value = float(request.form.get('iva_value', 0))
+    final_total = float(request.form.get('final_total', 0))
 
     db = get_db()
     payment_model = Payment(db)
     order_model = Order(db)
     product_model = Product(db)
+    invoice_model = Invoice(db) 
+    iva_condition = request.form.get('iva_condition')  
 
     order = order_model.get_order(order_number)
     if not order:
@@ -373,20 +380,40 @@ def process_payment(order_number):
         "payment_method": payment_method,
         "installments": int(installments),
         "total": total,
+        "final_total": final_total,
         "items": order['items'],
-        "order_number": order_number
+        "order_number": int(order_number),
+        "iva": iva_value
     }
-    
+
+    invoice_number = invoice_model.get_next_invoice_number()
+
+    invoice_info = {
+        "invoice_number": invoice_number,
+        "user_id": user_id,
+        "payment_method": payment_method,
+        "installments": int(installments),
+        "total": total,
+        "final_total": final_total,
+        "items": order['items'],
+        "order_number": int(order_number),
+        "iva": iva_value,
+        "iva_condition": iva_condition
+    }
+
     # Utilizar el modelo Payment para guardar la información del pago
     payment_model.insert_payment(payment_info)
 
     # Actualizar el estado de la orden a "Pagado"
-    order_model.update_order_status(order_number, "Pagado")
+    order_model.update_order_status(int(order_number), "Pagado")
+
+    invoice_id = invoice_model.create_invoice(invoice_info)
 
     # Establecer un indicador de que el pago fue exitoso y guardar la información de pago en la sesión
     session['payment_completed'] = True
     session['payment_info'] = json_util.dumps(payment_info)  # Convertir a JSON
-    
+    session['invoice_id'] = invoice_id
+
     return redirect(url_for('payment_success'))
 
 

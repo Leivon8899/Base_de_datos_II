@@ -7,7 +7,7 @@
 <p>Thank you for your purchase!</p>
 <p>Your order number is: {{ payment_info.order_number }}</p>
 <p>Payment Method: {{ payment_info.payment_method }}</p>
-<p>Total Amount: ${{ payment_info.total }}</p>
+<p>Total Amount: ${{ payment_info.final_total }}</p>
 <p>Items:</p>
 <ul>
     {% for item in payment_info['items'] %}

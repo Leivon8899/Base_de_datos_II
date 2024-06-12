@@ -29,7 +29,7 @@
                             <a href="/product/{{ product.productId }}" class="view-details-btn">Ver Detalles</a>
                             <form action="/add_to_cart" method="post">
                                 <input type="hidden" name="product_id" value="{{ product.productId }}">
-                                <input type="hidden" name="name" value="{{ product.description }}">
+                                <input type="hidden" name="name" value="{{ product.name }}">
                                 
                                 <input type="hidden" id="quantity" name="quantity" value="1" class="quantity-input">
                                 <button type="submit" class="btn-add-to-cart">Añadir al Carrito</button>

@@ -14,7 +14,7 @@
             <p class="product-description"><strong>Descripción:</strong> {{ product.description }}</p>
             <form action="/add_to_cart" method="post">
                 <input type="hidden" name="product_id" value="{{ product.productId }}">
-                <input type="hidden" name="name" value="{{ product.description }}">
+                <input type="hidden" name="name" value="{{ product.name }}">
                 <label for="quantity">Quantity:</label>
                 <input type="number" id="quantity" name="quantity" min="1" value="1" class="quantity-input">
                 <button type="submit" class="btn-add-to-cart">Añadir al Carrito</button>
