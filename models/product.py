@@ -16,7 +16,7 @@ class Product:
     def delete_product(self, product_id):
         return self.collection.update_one(
             {"productId": product_id},
-            {"$set": {"isDeleted": True}}
+            {"$set": {"isDeleted": True, "stock": 0}}
         )
     
     def get_all_products(self):

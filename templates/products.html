@@ -1,33 +1,42 @@
 {% extends "base.html" %}
 
+{% block title %}Product List{% endblock %}
+
 {% block content %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Product List{% endblock %}</title>
+    <title>Product List</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles/products.css') }}">
 </head>
 <body>
     <div class="container">
         <div class="content">
-            <h1>Product List</h1>
+            <h1>Lista de Productos</h1>
             <div class="product-grid">
                 {% for product in products %}
-                <div class="product">
-                    
-                    <img src="/" alt="{{ product.name }}">
-                    <div class="product-details">
-                        <h2>{{ product.name }}</h2>
-                        <p>{{ product.description }}</p>
-                        <p class="product-price">{{ product.price }}</p>
+                    {% if not product.isDeleted and product.stock > 0 %}
+                    <div class="product">
+                        <img src="{{ product.image_url }}" alt="{{ product.name }}">
+                        <div class="product-details">
+                            <h2>{{ product.name }}</h2>
+                            <p>{{ product.description }}</p>
+                            <p class="product-price">{{ product.price }}</p>
+                        </div>
+                        <div class="product-action">
+                            <a href="/product/{{ product.productId }}" class="view-details-btn">Ver Detalles</a>
+                            <form action="/add_to_cart" method="post">
+                                <input type="hidden" name="product_id" value="{{ product.productId }}">
+                                <input type="hidden" name="name" value="{{ product.description }}">
+                                
+                                <input type="hidden" id="quantity" name="quantity" value="1" class="quantity-input">
+                                <button type="submit" class="btn-add-to-cart">Añadir al Carrito</button>
+                            </form>
+                        </div>
                     </div>
-                    <div class="product-action">
-                        <a href="/product/{{ product.productId }}" class="view-details-btn">Ver Detalles</a>
-                        <button>Sumar al Carrito</button>
-                    </div>
-                </div>
+                    {% endif %}
                 {% endfor %}
             </div>
         </div>

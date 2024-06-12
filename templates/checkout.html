@@ -32,7 +32,7 @@
 <p id="grand_total">Total con recargo: $<span id="grand_total_amount">{{ total }}</span></p>
 
 <h2>Opciones de Pago</h2>
-<form action="/process_payment" method="post">
+<form action="{{ url_for('process_payment', order_number=order_number) }}" method="post">
     <label for="payment_method">Choose a payment method:</label>
     <select id="payment_method" name="payment_method">
         <option value="cash">Efectivo</option>
@@ -54,7 +54,6 @@
     <button type="submit">Confirmar Pago</button>
 </form>
 
-<a href="/cart">Volver al carrito</a>
 
 <script>
 document.getElementById('payment_method').addEventListener('change', function() {

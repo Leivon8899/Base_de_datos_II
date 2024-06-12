@@ -3,37 +3,40 @@
 {% block title %}Shopping Cart{% endblock %}
 
 {% block content %}
-<h1>Your Cart</h1>
-{% if items and items|length > 0 %}
-<table>
-    <tr>
-        <th>Product ID</th>
-        <th>Quantity</th>
-        <th>Action</th>
-    </tr>
-    {% for item in items %}
-    <tr>
-        <td>{{ item.productId }}</td>
-        <td>
-            <form action="/update_cart" method="post" style="display:inline;">
-                <input type="hidden" name="product_id" value="{{ item.productId }}">
-                <input type="number" name="quantity" value="{{ item.quantity }}" min="1">
-                <button type="submit">Update</button>
-            </form>
-        </td>
-        <td>
-            <form action="/remove_from_cart/{{ item.productId }}" method="post" style="display:inline;">
-                <button type="submit">Remove</button>
-            </form>
-        </td>
-    </tr>
-    {% endfor %}
-</table>
-<form action="/checkout" method="get">
-    <button type="submit">Finalizar Compra</button>
-</form>
-{% else %}
-<p>Your cart is empty.</p>
-{% endif %}
-<a href="/products">Continue Shopping</a>
+<div class="cart-container">
+    <h1>Tu Carrito</h1>
+    {% if items and items|length > 0 %}
+    <table>
+        <tr>
+            <th>ID Del Producto</th>
+            <th>Cantidad</th>
+            <th>Acción</th>
+        </tr>
+        {% for item in items %}
+        <tr>
+            <td>{{ item.productId }}</td>
+            <td>
+                <form action="/update_cart" method="post">
+                    <input type="hidden" name="product_id" value="{{ item.productId }}">
+                    <input type="number" name="quantity" value="{{ item.quantity }}" min="1">
+                    <button type="submit">Actualizar</button>
+                </form>
+            </td>
+            <td>
+                <form action="/remove_from_cart/{{ item.productId }}" method="post">
+                    <button type="submit" class="delete-btn">Quitar</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <form action="/create_order" method="post">
+        <button type="submit">Confirmar orden</button>
+    </form>
+    {% else %}
+    <p>Tu Carrito está vacío.</p>
+    {% endif %}
+    <a href="/products" class="continue-shopping">Seguir Comprando</a>
+</div>
 {% endblock %}

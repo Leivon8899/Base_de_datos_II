@@ -3,23 +3,14 @@
 {% block title %}Profile{% endblock %}
 
 {% block content %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile</title>
-</head>
-<body>
-    <h1>User Profile</h1>
-    <p>Name: {{ user.name }}</p>
+<div class="profile-container">
+    <h1>Perfil De Usuario</h1>
+    <p>Nombre: {{ user.name }}</p>
     <p>Email: {{ user.username }}</p>
-    <p>Address: {{ user.address }}</p>
-    <p>ID Number: {{ user.id_number }}</p>
+    <p>Dirección: {{ user.address }}</p>
+    <p>Numero ID: {{ user.id_number }}</p>
     <form action="{{ url_for('auth.logout') }}" method="post">
-        <button type="submit">Logout</button>
+        <button type="submit">Salir</button>
     </form>
-</body>
-</html>
-
+</div>
 {% endblock %}

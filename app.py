@@ -59,7 +59,7 @@ def inject_cart_count():
 def index():
     db = get_db()
     product_model = Product(db)
-    products = product_model.get_all_products()
+    products = product_model.get_active_products()  
     return render_template('home.html', products=products)
 
 @app.route('/products')
@@ -280,21 +280,25 @@ def remove_from_cart(product_id):
     cart_model.remove_from_cart(cart_id, product_id)
     return redirect(url_for('view_cart'))
 
-@app.route('/checkout', methods=['GET'])
-def checkout():
+@app.route('/checkout/<order_number>', methods=['GET'])
+def checkout(order_number):
     if 'token' not in session:
         return redirect(url_for('auth.login'))
+    
     redis_client = get_redis_client()
     user_id = redis_client.get(f"session:{session['token']}").decode('utf-8')
     db = get_db()
-    cart_model = Cart(db)
-    cart_id = f"{user_id}"
-    items = cart_model.get_cart(cart_id)
+    
+    order_model = Order(db)
+    order = order_model.get_order(order_number)
+
+    if not order:
+        return "Order not found", 404
 
     # Obtener detalles del producto
     product_model = Product(db)
     detailed_items = []
-    for item in items:
+    for item in order['items']:
         product = product_model.get_product(item['productId'])
         item_details = {
             "name": product['name'],
@@ -303,9 +307,28 @@ def checkout():
         }
         detailed_items.append(item_details)
 
-    
-    total = sum(item['quantity'] * get_product_price(item['productId'], db) for item in items)
-    return render_template('checkout.html', items=detailed_items, total=total)
+    total = sum(item['quantity'] * get_product_price(item['productId'], db) for item in order['items'])
+    return render_template('checkout.html', items=detailed_items, total=total, order_number=order_number)
+
+@app.route('/reset_password', methods=['GET', 'POST'])
+def reset_password():
+    if request.method == 'POST':
+        name = request.form['name']
+        dni = request.form['id_number']
+        new_password = request.form['password']
+        
+        # Verificar que el nombre y el DNI coinciden
+        user_id = redis_client.get(f"user_id:{name}:{dni}")
+        if user_id:
+            email = user_id.decode('utf-8')
+            # Hashear la nueva contraseña
+            hashed_password = generate_password_hash(new_password)
+            # Actualizar la contraseña en Redis
+            redis_client.hset(f"user:{email}", "password", hashed_password)
+            return "Your password has been reset successfully."
+        else:
+            return "Invalid name or DNI."
+    return render_template('reset_password.html')
 
 def get_product_price(product_id, db):
     product_model = Product(db)
@@ -316,8 +339,8 @@ def get_product_price(product_id, db):
 def error():
     return render_template('error.html')
 
-@app.route('/process_payment', methods=['POST'])
-def process_payment():
+@app.route('/process_payment/<order_number>', methods=['POST'])
+def process_payment(order_number):
     if 'token' not in session:
         return redirect(url_for('auth.login'))
     
@@ -331,70 +354,41 @@ def process_payment():
     installments = request.form.get('installments', '1')
 
     db = get_db()
-    cart_model = Cart(db)
     payment_model = Payment(db)
     order_model = Order(db)
     product_model = Product(db)
 
-    cart_id = f"{user_id}"
-    items = cart_model.get_cart(cart_id)
-    total = sum(item['quantity'] * get_product_price(item['productId'], db) for item in items)
-    
-    for item in items:
-        item["productId"] = str(item["productId"])
-        product = product_model.get_product(item["productId"])
-        
-        if product["stock"] < item["quantity"]:
-            # Maneja el caso donde no hay suficiente stock
-            #products = product_model.get_active_products()
-            return redirect(url_for('error')) #render_template('products.html', products=products)
-        else:
-            # Descuenta el stock
-            product_model.decrement_stock(item["productId"], item["quantity"])
+    order = order_model.get_order(order_number)
+    if not order:
+        return "Order not found", 404
 
+    total = order['total']
+    
     # Aplicar recargo del 15% si el método de pago es tarjeta de crédito
     if payment_method == 'credit':
         total += total * 0.15
 
-    # Generar un número de orden único
-    order_number = redis_client.incr('order_number')
-        
     payment_info = {
         "user_id": user_id,
         "payment_method": payment_method,
         "installments": int(installments),
         "total": total,
-        "items": items,
+        "items": order['items'],
         "order_number": order_number
     }
-        
+    
     # Utilizar el modelo Payment para guardar la información del pago
     payment_model.insert_payment(payment_info)
-        
-    # Crear y guardar la orden en la colección "orders"
-    order_info = {
-        "order_number": order_number,
-        "user_id": user_id,
-        "name": user_name,
-        "address": user_address,
-        "items": items,
-        "total": total,
-        "payment_method": payment_method,
-        "installments": int(installments),
-        "status": "completed"
-    }
-        
-    # Utilizar el modelo Order para guardar la información de la orden
-    order_model.insert_order(order_info)
-        
-    # Vaciar el carrito después del pago
-    cart_model.update_cart(cart_id, {"items": []})
-    
+
+    # Actualizar el estado de la orden a "Pagado"
+    order_model.update_order_status(order_number, "Pagado")
+
     # Establecer un indicador de que el pago fue exitoso y guardar la información de pago en la sesión
     session['payment_completed'] = True
     session['payment_info'] = json_util.dumps(payment_info)  # Convertir a JSON
     
     return redirect(url_for('payment_success'))
+
 
 @app.route('/payment_success')
 def payment_success():
@@ -416,15 +410,96 @@ def view_all_orders():
     orders = order_model.get_all_orders()
     return render_template('admin_orders.html', orders=orders)
 
-@app.route('/admin/order/<order_id>')
-@admin_required
+@app.route('/user/orders')
+def user_orders():
+    if 'token' not in session:
+        return redirect(url_for('auth.login'))
+    
+    redis_client = get_redis_client()
+    user_id = redis_client.get(f"session:{session['token']}").decode('utf-8')
+    
+    db = get_db()
+    order_model = Order(db)
+    
+    # Obtener las órdenes del usuario
+    orders = order_model.get_orders_by_user(user_id)
+    
+    return render_template('user_orders.html', orders=orders)
+
+@app.route('/create_order', methods=['POST'])
+def create_order():
+    if 'token' not in session:
+        return redirect(url_for('auth.login'))
+    
+    redis_client = get_redis_client()
+    db = get_db()
+
+    user_id = redis_client.get(f"session:{session['token']}").decode('utf-8')
+    user_name = redis_client.hget(f"user:{user_id}", "name").decode('utf-8')
+    user_address = redis_client.hget(f"user:{user_id}", "address").decode('utf-8')
+
+    order_number = redis_client.incr('order_number')
+    print(order_number)
+
+    cart_model = Cart(db)
+    order_model = Order(db)
+    product_model = Product(db)
+
+    cart_model = Cart(db)
+    cart_id = f"{user_id}"
+    items = cart_model.get_cart(cart_id)  # Implementa esta función según tu lógica
+    total = sum(item['quantity'] * get_product_price(item['productId'], db) for item in items)
+
+    for item in items:
+        item["productId"] = str(item["productId"])
+        product = product_model.get_product(item["productId"])        
+        if product["stock"] < item["quantity"]:
+            # Maneja el caso donde no hay suficiente stock
+            #products = product_model.get_active_products()
+            return redirect(url_for('error')) #render_template('products.html', products=products)
+
+    for item in items:
+        product_model.decrement_stock(item["productId"], item["quantity"])
+
+    order_info = {
+        "order_number": order_number,
+        "user_id": user_id,
+        "name": user_name,
+        "address": user_address,
+        "items": items,
+        "total": total,
+        "status": "Pendiente de pago"
+    }
+        # Utilizar el modelo Order para guardar la información de la orden
+    order_model.insert_order(order_info)
+    cart_model.update_cart(cart_id, {"items": []})
+    
+    return redirect(url_for('view_order_details', order_id=order_number))
+
+
+@app.route('/order/<order_id>') 
 def view_order_details(order_id):
+    if 'token' not in session:
+        return redirect(url_for('auth.login'))
+    
     db = get_db()
     order_model = Order(db)
     order = order_model.get_order(order_id)
     if not order:
         return "Order not found", 404
-    return render_template('order_details.html', order=order)
+    return render_template('user_order_details.html', order=order)
+
+
+@app.route('/admin/order/<order_id>') 
+@admin_required
+def view_admin_order_details(order_id):
+    db = get_db()
+    order_model = Order(db)
+    order = order_model.get_order(order_id)
+    if not order:
+        return "Order not found", 404
+    return render_template('admin_order_details.html', order=order)
+
 
 @app.route('/test_mongo')
 def test_mongo():
