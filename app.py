@@ -12,6 +12,7 @@ from models.payment import Payment
 from models.order import Order
 from models.invoice import Invoice
 from decorator.decorators import admin_required
+from werkzeug.utils import secure_filename
 import os
 from bson import json_util, ObjectId
 from datetime import datetime, timedelta
@@ -27,6 +28,15 @@ app.register_blueprint(cart_bp, url_prefix='/api')
 app.register_blueprint(order_bp, url_prefix='/api')
 app.register_blueprint(product_bp, url_prefix='/api')
 app.register_blueprint(auth_bp, url_prefix='/auth')
+
+# Configuración de la carpeta de subida
+UPLOAD_FOLDER = 'public/uploads'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def get_cart_count():
     if 'token' not in session:

@@ -129,7 +129,6 @@ def reset_password():
         new_password = request.form['password']
         # Verificar que el nombre y el DNI coinciden
         stored_dni = redis_client.hget(f"user:{email}", "id_number").decode('utf-8')
-        
         if stored_dni == id_number:
             hashed_password = hash_password(new_password)
             redis_client.hset(f"user:{email}", "password", hashed_password)

@@ -26,6 +26,9 @@
             <td>
                 <div class="action-buttons">
                     <a href="{{ url_for('view_admin_order_details', order_id=order.order_number) }}">Ver Detalles</a>
+                    {% if order.status == "Pagado" %}
+                    <a href="{{ url_for('view_invoice', order_id=order.order_number) }}">Ver Factura</a>
+                    {% endif %}
                 </div>
             </td>
         </tr>

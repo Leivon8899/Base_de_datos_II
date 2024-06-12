@@ -21,7 +21,7 @@
         {% endfor %}
     </ul>
 
-    <a href="{{ url_for('view_all_orders') }}">Ir a mis ordenes</a>
+    <a href= "/user/orders">Ir a mis ordenes</a>
 
     {% if order.status == "Pendiente de pago" %}
     <a href="{{ url_for('checkout', order_number=order.order_number) }}" class="pay-button">Ir a pagar</a>

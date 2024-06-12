@@ -77,6 +77,7 @@ body {
     font-size: 1em;
     font-weight: bold;
     transition: background-color 0.3s;
+    width: auto;
 }
 
 .btn-add-to-cart:hover {
