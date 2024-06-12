@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}Add Product{% endblock %}
+{% block title %}Agregar Producto{% endblock %}
 
 {% block content %}
 <div class="add-product-form">
     <h1>Agregar Nuevo Producto</h1>
-    <form method="POST" action="{{ url_for('add_product') }}">
+    <form method="POST" action="{{ url_for('add_product') }}" enctype="multipart/form-data">
         <label for="name">Nombre Del Producto:</label>
         <input type="text" id="name" name="name" required>
 
@@ -18,11 +18,8 @@
         <label for="description">Descripcion:</label>
         <textarea id="description" name="description" required></textarea>
 
-        <label for="images">Imagenes (URLs separadas por coma):</label>
-        <input type="text" id="images" name="images">
-
-        <label for="videos">Videos (URLs separadas por coma):</label>
-        <input type="text" id="videos" name="videos">
+        <label for="image_files">Imágenes (puedes seleccionar varias):</label>
+        <input type="file" id="image_files" name="image_files" multiple>
 
         <button type="submit">Agregar Producto</button>
     </form>

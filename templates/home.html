@@ -15,8 +15,7 @@
                 {% if products and products|length > 0 %}
                     {% for product in products[:3] %}
                     <div class="slide">
-                        <img src="/public/ps4.jpg" 
-                        alt="{{ product.name }}" width="5" height="600">
+                        <img src="{{ url_for('static', filename=image) }}" alt="{{ product.name }}" height="250" width="250">
                         <div class="product-details">
                             <h3>{{ product.name }}</h3>
                             <p class="product-price">{{ product.price }}</p>

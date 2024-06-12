@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Product List{% endblock %}
+{% block title %}Productos{% endblock %}
 
 {% block content %}
 <!DOCTYPE html>
@@ -19,8 +19,10 @@
                 {% for product in products %}
                     {% if not product.isDeleted and product.stock > 0 %}
                     <div class="product">
-                        <img src="{{ product.image_url }}" alt="{{ product.name }}">
-                        <div class="product-details">
+                        {% if product.images and product.images[0] %}
+                        <img src="{{ url_for('static', filename=product.images[0]) }}" alt="{{ product.name }}">
+                        {% endif %}
+                            <div class="product-details">
                             <h2>{{ product.name }}</h2>
                             <p>{{ product.description }}</p>
                             <p class="product-price">{{ product.price }}</p>

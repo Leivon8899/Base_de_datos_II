@@ -30,7 +30,7 @@ app.register_blueprint(product_bp, url_prefix='/api')
 app.register_blueprint(auth_bp, url_prefix='/auth')
 
 # Configuración de la carpeta de subida
-UPLOAD_FOLDER = 'public/uploads'
+UPLOAD_FOLDER = 'static/uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
@@ -113,9 +113,17 @@ def add_product():
         price = float(request.form['price'])
         description = request.form['description']
         stock = int(request.form['stock'])
+        images = []
 
-        images = request.form.get('images').split(',')
-        videos = request.form.get('videos').split(',')
+        #images = request.form.get('images').split(',')
+        
+        if 'image_files' in request.files:
+            for file in request.files.getlist('image_files'):
+                if file and allowed_file(file.filename):
+                    filename = secure_filename(file.filename)
+                    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                    file.save(file_path)
+                    images.append(f'/uploads/{filename}')
 
         db = get_db()
         product_model = Product(db)
@@ -126,7 +134,7 @@ def add_product():
             "description": description,
             "stock": stock,
             "images": images,
-            "videos": videos,
+            #"videos": videos,
             "isDeleted": False
         }
         product_model.add_product(product_data)
@@ -152,8 +160,7 @@ def edit_product(product_id):
         price = float(request.form['price'])
         description = request.form['description']
         stock = int(request.form['stock'])
-        images = request.form.get('images').split(',')
-        videos = request.form.get('videos').split(',')
+        images = product['images']
 
         changes = []
         if name != product["name"]:
@@ -164,18 +171,21 @@ def edit_product(product_id):
             changes.append({"field": "stock", "old": product["stock"], "new": stock})
         if description != product["description"]:
             changes.append({"field": "description", "old": product["description"], "new": description})
-        if images != product["images"]:
-            changes.append({"field": "images", "old": product["images"], "new": images})
-        if videos != product["videos"]:
-            changes.append({"field": "videos", "old": product["videos"], "new": videos})
+        
+        if 'image_files' in request.files:
+            for file in request.files.getlist('image_files'):
+                if file and allowed_file(file.filename):
+                    filename = secure_filename(file.filename)
+                    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                    file.save(file_path)
+                    images.append(f'uploads/{filename}')  # Agregar la nueva imagen a la lista
 
         product_data = {
             "name": name,
             "price": price,
             "description": description,
             "stock": stock,
-            "images": images,
-            "videos": videos
+            "images": images
         }
         product_model.update_product(product_id, product_data)
 
@@ -358,10 +368,7 @@ def process_payment(order_number):
         return "Order not found", 404
 
     total = order['total']
-    
-    # Aplicar recargo del 15% si el método de pago es tarjeta de crédito
-    if payment_method == 'credit':
-        total += total * 0.15
+
 
     payment_info = {
         "user_id": user_id,
@@ -427,6 +434,7 @@ def payment_success():
         payment_info = json_util.loads(session.get('payment_info'))
         session.pop('payment_completed', None)
         session.pop('payment_info', None)
+       
         return render_template('payment_success.html', payment_info=payment_info)
     else:
         return redirect(url_for('index'))
@@ -476,7 +484,7 @@ def create_order():
 
     cart_model = Cart(db)
     cart_id = f"{user_id}"
-    items = cart_model.get_cart(cart_id)  # Implementa esta función según tu lógica
+    items = cart_model.get_cart(cart_id)
     total = sum(item['quantity'] * get_product_price(item['productId'], db) for item in items)
 
     for item in items:
@@ -486,6 +494,9 @@ def create_order():
             # Maneja el caso donde no hay suficiente stock
             #products = product_model.get_active_products()
             return redirect(url_for('error')) #render_template('products.html', products=products)
+
+        item_price = get_product_price(item["productId"], db)
+        item["price"] = item_price
 
     for item in items:
         product_model.decrement_stock(item["productId"], item["quantity"])

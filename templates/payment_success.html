@@ -1,18 +1,20 @@
 {% extends "base.html" %}
 
-{% block title %}Payment Success{% endblock %}
+{% block title %}Pago Confirmado{% endblock %}
 
 {% block content %}
-<h1>Payment Successful</h1>
-<p>Thank you for your purchase!</p>
-<p>Your order number is: {{ payment_info.order_number }}</p>
-<p>Payment Method: {{ payment_info.payment_method }}</p>
-<p>Total Amount: ${{ payment_info.final_total }}</p>
-<p>Items:</p>
-<ul>
-    {% for item in payment_info['items'] %}
-        <li>{{ item.name }} - Quantity: {{ item.quantity }}</li>
-    {% endfor %}
-</ul>
-<a href="{{ url_for('products_page') }}">Continue Shopping</a>
+<div class="payment-success-container">
+    <h1>Pago Confirmado</h1>
+    <p>Gracias por su compra!</p>
+    <p>Tu número de orden es: {{ payment_info.order_number }}</p>
+    <p>Método de Pago: {{ payment_info.payment_method }}</p>
+    <p>Total: ${{ payment_info.final_total }}</p>
+    <p>Artículos:</p>
+    <ul>
+        {% for item in payment_info['items'] %}
+            <li>{{ item.name }} - Cantidad: {{ item.quantity }}</li>
+        {% endfor %}
+    </ul>
+    <a href="{{ url_for('products_page') }}">Seguir Comprando</a>
+</div>
 {% endblock %}
