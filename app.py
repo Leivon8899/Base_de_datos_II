@@ -320,8 +320,6 @@ def get_product_price(product_id, db):
 def error():
     return render_template('error.html')
 
-
-
 @app.route('/process_payment/<order_number>', methods=['POST'])
 def process_payment(order_number):
     if 'token' not in session:
@@ -371,6 +369,8 @@ def process_payment(order_number):
     invoice_info = {
         "invoice_number": invoice_number,
         "user_id": user_id,
+        "name": user_name,
+        "address": user_address,
         "payment_method": payment_method,
         "installments": int(installments),
         "total": total,
@@ -378,7 +378,8 @@ def process_payment(order_number):
         "items": order['items'],
         "order_number": int(order_number),
         "iva": iva_value,
-        "iva_condition": iva_condition
+        "iva_condition": iva_condition,
+        "date": datetime.utcnow()
     }
 
     # Utilizar el modelo Payment para guardar la información del pago
@@ -396,6 +397,17 @@ def process_payment(order_number):
 
     return redirect(url_for('payment_success'))
 
+@app.route('/view_invoice/<order_id>', methods=['GET'])
+def view_invoice(order_id):
+    db = get_db()
+    invoice_model = Invoice(db)
+
+    invoice_info = invoice_model.get_invoice_by_orderId(order_id)
+    
+    if not invoice_info:
+        return "Invoice not found", 404
+
+    return render_template('view_invoice.html', invoice_info=invoice_info)
 
 @app.route('/payment_success')
 def payment_success():

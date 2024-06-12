@@ -16,5 +16,5 @@ class Invoice:
         result = self.collection.insert_one(invoice_info)
         return str(result.inserted_id)
 
-    def get_invoice(self, invoice_id):
-        return self.collection.find_one({"_id": ObjectId(invoice_id)})
+    def get_invoice_by_orderId(self, order_number):
+        return self.collection.find_one({"order_number": int(order_number)})
