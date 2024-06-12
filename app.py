@@ -311,26 +311,6 @@ def checkout(order_number):
     total = sum(item['quantity'] * get_product_price(item['productId'], db) for item in order['items'])
     return render_template('checkout.html', items=detailed_items, total=total, order_number=order_number)
 
-@app.route('/reset_password', methods=['GET', 'POST'])
-def reset_password():
-    if request.method == 'POST':
-        name = request.form['name']
-        dni = request.form['id_number']
-        new_password = request.form['password']
-        
-        # Verificar que el nombre y el DNI coinciden
-        user_id = redis_client.get(f"user_id:{name}:{dni}")
-        if user_id:
-            email = user_id.decode('utf-8')
-            # Hashear la nueva contraseña
-            hashed_password = generate_password_hash(new_password)
-            # Actualizar la contraseña en Redis
-            redis_client.hset(f"user:{email}", "password", hashed_password)
-            return "Your password has been reset successfully."
-        else:
-            return "Invalid name or DNI."
-    return render_template('reset_password.html')
-
 def get_product_price(product_id, db):
     product_model = Product(db)
     product = product_model.get_product(product_id)

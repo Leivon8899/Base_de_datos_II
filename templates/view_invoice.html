@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Factura</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .invoice-container {
+            width: 80%;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .invoice-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .invoice-header h1 {
+            margin: 0;
+        }
+        .invoice-details, .invoice-items, .invoice-summary {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        .invoice-details th, .invoice-details td, .invoice-items th, .invoice-items td, .invoice-summary th, .invoice-summary td {
+            padding: 8px;
+            border: 1px solid #ddd;
+        }
+        .invoice-details th, .invoice-items th, .invoice-summary th {
+            background-color: #f4f4f4;
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice-container">
+        <div class="invoice-header">
+            <h1>Factura</h1>
+        </div>
+        <div class="invoice-details">
+            <table>
+                <tr>
+                    <th>Orden ID:</th>
+                    <td>{{ invoice_info.order_number }}</td>
+                </tr>
+                <tr>
+                    <th>Fecha:</th>
+                    <td>{{ invoice_info.date }}</td>
+                </tr>
+                <tr>
+                    <th>Nombre:</th>
+                    <td>{{ invoice_info.name }}</td>
+                </tr>
+                <tr>
+                    <th>Email:</th>
+                    <td>{{ invoice_info.user_id }}</td>
+                </tr>
+                <tr>
+                    <th>Dirección:</th>
+                    <td>{{ invoice_info.address }}</td>
+                </tr>
+                <tr>
+                    <th>Condición de IVA:</th>
+                    <td>{{ invoice_info.iva_condition }}</td>
+                </tr>
+            </table>
+        </div>
+        <div class="invoice-items">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Cantidad</th>
+                        <th>Precio Unitario</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in invoice_info.items %}
+                    <tr>
+                        <td>{{ item.name }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>${{ item.price }}</td>
+                        <td>${{ item.quantity * item.price }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="invoice-summary">
+            <table>
+                <tr>
+                    <th>Total:</th>
+                    <td>${{ invoice_info.total }}</td>
+                </tr>
+                <tr>
+                    <th>IVA:</th>
+                    <td>${{ invoice_info.iva }}</td>
+                </tr>
+                <tr>
+                    <th>Total Final:</th>
+                    <td>${{ invoice_info.final_total }}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

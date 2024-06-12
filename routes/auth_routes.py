@@ -8,6 +8,9 @@ from utils.classify_users import classify_user  # Importar la función de clasif
 auth_bp = Blueprint('auth', __name__)
 redis_client = get_redis_client()
 
+auth_bp = Blueprint('auth', __name__)
+redis_client = get_redis_client()
+
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
@@ -57,7 +60,6 @@ def login():
         stored_password = stored_password.decode('utf-8') if stored_password else None
 
         print(f"Login - Username: {username}, Hashed Password: {hashed_password}, Stored Password: {stored_password}")  # Debug print
-
         
         if not stored_password or stored_password != hashed_password:
             return render_template('login.html', error="Invalid username or password")
@@ -69,7 +71,6 @@ def login():
 
         login_time = time.time()
         redis_client.hset(f"user:{username}", "login_time", login_time)
-
 
         return redirect(url_for('index'))
 
@@ -119,3 +120,24 @@ def profile():
     user_data = redis_client.hgetall(f"user:{username}")
     user = {k.decode('utf-8'): v.decode('utf-8') for k, v in user_data.items()}
     return render_template('profile.html', user=user)
+
+@auth_bp.route('/reset_password', methods=['GET', 'POST'])
+def reset_password():
+    if request.method == 'POST':
+        name = request.form['name']
+        id_number = request.form['id_number']  # Cambiado a id_number
+        new_password = request.form['password']
+        
+        # Verificar que el nombre y el DNI coinciden
+        username = redis_client.get(f"user_id:{name}:{id_number}")
+        if username:
+            username = username.decode('utf-8')
+            # Hashear la nueva contraseña
+            hashed_password = hash_password(new_password)
+            # Actualizar la contraseña en Redis
+            redis_client.hset(f"user:{username}", "password", hashed_password)
+            return "Your password has been reset successfully."
+        else:
+            return "Invalid name or DNI."
+        
+    return render_template('reset_password.html')

@@ -13,7 +13,8 @@ class Invoice:
         return self.redis_client.incr('invoice_number')
     
     def create_invoice(self, invoice_info):
-        self.collection.insert_one(invoice_info)
+        result = self.collection.insert_one(invoice_info)
+        return str(result.inserted_id)
 
     def get_invoice(self, invoice_id):
         return self.collection.find_one({"_id": ObjectId(invoice_id)})

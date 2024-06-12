@@ -15,11 +15,11 @@
                 <label for="password">Contraseña:</label>
                 <input type="password" id="password" name="password" class="form-control" placeholder="Contraseña" required="">
             </div>
-            <div class="form-group">
-                <button><a href="{{ url_for('reset_password') }}">Recuperar contraseña</a></button>
-            </div>
             <button class="btn btn-lg btn-primary btn-block btn-login" type="submit">Entrar</button>
         </form>
+        <div class="no-account">
+            <p>¿Olvidaste tu contraseña? <a href="{{ url_for('auth.reset_password') }}" class="btn btn-secondary">Recuperar</a></p>
+        </div>
         <div class="no-account">
             <p>¿No tenés una cuenta? <a href="{{ url_for('auth.register') }}">Registrarse</a></p>
         </div>
