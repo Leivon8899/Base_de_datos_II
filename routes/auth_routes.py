@@ -3,7 +3,7 @@ from utils.redis_client import get_redis_client
 import uuid
 import hashlib
 import time
-from utils.classify_users import classify_user  # Importar la función de clasificación
+from utils.classify_users import classify_user  
 
 auth_bp = Blueprint('auth', __name__)
 redis_client = get_redis_client()
@@ -59,14 +59,14 @@ def login():
         stored_password = redis_client.hget(f"user:{username}", "password")
         stored_password = stored_password.decode('utf-8') if stored_password else None
 
-        print(f"Login - Username: {username}, Hashed Password: {hashed_password}, Stored Password: {stored_password}")  # Debug print
+        print(f"Login - Username: {username}, Hashed Password: {hashed_password}, Stored Password: {stored_password}") 
         
         if not stored_password or stored_password != hashed_password:
             return render_template('login.html', error="Invalid username or password")
 
         session_token = str(uuid.uuid4())
         redis_client.set(f"session:{session_token}", username)
-        redis_client.expire(f"session:{session_token}", 3600)  # Session expires in 1 hour
+        redis_client.expire(f"session:{session_token}", 3600)  # La sesion expira en una hora
         session['token'] = session_token
 
         login_time = time.time()

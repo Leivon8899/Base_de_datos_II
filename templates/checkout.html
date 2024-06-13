@@ -36,7 +36,7 @@
         </table>
 
         <p>Total: $<span id="total">{{ total }}</span></p>
-        <p id="credit_fee" class="hidden">Recargo por tarjeta de crédito: $<span id="credit_fee_amount"></span></p>
+        <p id="credit_fee" class="hidden">Recargo por tarjeta de crédito: $<span id="credit_fee_amount">{{ creditFee }}</span></p>
         <p id="grand_total">Total con recargo: $<span id="grand_total_amount">{{ total }}</span></p>
         <p id="iva_amount" class="hidden">IVA (21%): $<span id="iva_value"></span></p>
         <p id="final_total" class="hidden">Total Final: $<span id="final_total_amount">{{ total }}</span></p>
@@ -47,6 +47,7 @@
             <input type="hidden" name="iva_value" id="hidden_iva_value">
             <input type="hidden" name="final_total" id="hidden_final_total">
             <input type="hidden" name="iva_condition" id="hidden_iva_condition">
+            <input type="hidden" name="credit_fee_amount" id="hidden_credit_fee_amount"> <!-- Campo oculto para el recargo -->
 
             <div class="form-group">
                 <label for="payment_method">Elija su metodo de Pago:</label>
@@ -105,6 +106,7 @@
         var hiddenIvaValue = document.getElementById('hidden_iva_value');
         var hiddenFinalTotal = document.getElementById('hidden_final_total');
         var hiddenIvaCondition = document.getElementById('hidden_iva_condition');
+        var hiddenCreditFeeAmount = document.getElementById('hidden_credit_fee_amount'); // Referencia al campo oculto
         var creditOptions = document.getElementById('credit_options');
         var debitOptions = document.getElementById('debit_options');
         var paymentMethod = document.getElementById('payment_method').value;
@@ -142,24 +144,25 @@
             creditFee.classList.add('hidden');
         }
 
-        grandTotalAmount.innerText = (total + fee).toFixed(2);
+        grandTotalAmount.innerText = (total).toFixed(2);
         grandTotal.classList.remove('hidden');
 
         var iva = 0;
         if (taxes == 'Responsable Inscripto') {
-            iva = (total + fee) * 0.21;
+            iva = (total * 0.21);
             ivaValue.innerText = iva.toFixed(2);
             ivaAmount.classList.remove('hidden');
         } else {
             ivaAmount.classList.add('hidden');
         }
 
-        finalTotalAmount.innerText = (total + fee + iva).toFixed(2);
+        finalTotalAmount.innerText = (total + iva).toFixed(2);
         finalTotal.classList.remove('hidden');
 
         hiddenIvaValue.value = iva.toFixed(2);
-        hiddenFinalTotal.value = (total + fee + iva).toFixed(2);
+        hiddenFinalTotal.value = (total + iva).toFixed(2);
         hiddenIvaCondition.value = taxes;
+        hiddenCreditFeeAmount.value = fee.toFixed(2); // Actualizar el campo oculto con el valor del recargo
     }
 
     document.addEventListener('DOMContentLoaded', function() {

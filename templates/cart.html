@@ -8,13 +8,13 @@
     {% if items and items|length > 0 %}
     <table>
         <tr>
-            <th>ID Del Producto</th>
+            <th>Nombre del Producto</th>
             <th>Cantidad</th>
             <th>Acción</th>
         </tr>
         {% for item in items %}
         <tr>
-            <td>{{ item.productId }}</td>
+            <td>{{ item.name }}</td>
             <td>
                 <form action="/update_cart" method="post">
                     <input type="hidden" name="product_id" value="{{ item.productId }}">

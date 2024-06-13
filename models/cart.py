@@ -10,11 +10,13 @@ class Cart:
     def get_cart(self, cart_id):
         cart = self.collection.find_one({"cartId": cart_id})
         if cart:
-            # Convertir ObjectId a string
+           
+           # Convertir ObjectId a string
             for item in cart.get("items", []):
                 item["productId"] = str(item["productId"])
             return cart.get("items", [])
         else:
+            
             # Devolver una lista vacía si no existe
             return []
 

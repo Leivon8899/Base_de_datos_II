@@ -9,39 +9,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Factura</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-        }
-        .invoice-container {
-            width: 80%;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: #fff;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        .invoice-header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .invoice-header h1 {
-            margin: 0;
-        }
-        .invoice-details, .invoice-items, .invoice-summary {
-            width: 100%;
-            margin-bottom: 20px;
-        }
-        .invoice-details th, .invoice-details td, .invoice-items th, .invoice-items td, .invoice-summary th, .invoice-summary td {
-            padding: 8px;
-            border: 1px solid #ddd;
-        }
-        .invoice-details th, .invoice-items th, .invoice-summary th {
-            background-color: #f4f4f4;
-        }
-    </style>
 </head>
 <body>
     <div class="invoice-container">
@@ -109,6 +76,11 @@
                     <td>${{ invoice_info.iva }}</td>
                 </tr>
                 <tr>
+                    <th>Recargo:</th>
+                    <td>${{ invoice_info.total_fee }}</td>
+                </tr>
+                <tr>
+                
                     <th>Total Final:</th>
                     <td>${{ invoice_info.final_total }}</td>
                 </tr>

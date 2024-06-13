@@ -9,12 +9,14 @@
             {% if product.images %}
                 {% for image in product.images %}
                 <div class="slide">
-                    <img src="{{ url_for('static', filename=image) }}" alt="{{ product.name }}" height="250" width="250">
+                    <img src="{{ url_for('static', filename=image) }}" alt="{{ product.name }}" >
                 </div>
                 {% endfor %}
-            {% endif %} 
-            <button class="prev" onclick="moveSlide(-1)">&#10094</button>       
-            <button class="next" onclick="moveSlide(1)">&#10095</button>   
+            {% endif %}
+            <div class="nav-buttons">
+                <button class="nav-button prev" onclick="moveSlide(-1)">&#10094;</button>
+                <button class="nav-button next" onclick="moveSlide(1)">&#10095;</button>
+            </div>
         </div>
         <div class="product-info">
             <h1>{{ product.name }} - ${{ product.price }}</h1>
@@ -33,7 +35,7 @@
 </div>
 <script>
     let slideIndex = 0;
-    let autoSlideInterval;
+    let slideInterval;
 
     function showSlides() {
         let slides = document.getElementsByClassName("slide");
@@ -43,11 +45,11 @@
         slideIndex++;
         if (slideIndex > slides.length) {slideIndex = 1}
         slides[slideIndex-1].style.display = "block";
-        resetAutoSlide(); 
+        slideInterval = setTimeout(showSlides, 5000); //esto cambia las imagenes
     }
 
     function moveSlide(n) {
-        clearTimeout(autoSlideInterval); 
+        clearTimeout(slideInterval);
         slideIndex += n;
         let slides = document.getElementsByClassName("slide");
         if (slideIndex > slides.length) {slideIndex = 1}
@@ -56,16 +58,11 @@
             slides[i].style.display = "none";
         }
         slides[slideIndex-1].style.display = "block";
-        resetAutoSlide(); 
-    }
-
-    function resetAutoSlide() {
-        clearTimeout(autoSlideInterval); 
-        autoSlideInterval = setTimeout(showSlides, 5000); 
+        slideInterval = setTimeout(showSlides, 5000); //esto cambia las imagenes
     }
 
     document.addEventListener("DOMContentLoaded", function() {
-        showSlides(); 
+        showSlides();
     });
 </script>
 
